@@ -88,10 +88,6 @@ mthead.appendChild(mtstyle);
 
 function do_init() {
     $(".submitted").first().parent().prepend("<div id='modtools'></div>");
-    $("#modtools").css("width", $("#modtools").parent().width() );
-
-    //$(".fivestar-static-form-item, .book-navigation, "+content_sel+" form, "+content_sel+" blockquote").remove();
-
     do_moderate();
 }
 function wait_for_init(i) {
