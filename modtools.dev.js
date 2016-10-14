@@ -16,7 +16,7 @@ function count_words(obj){
     s = s.replace(/(^\s*)|(\s*$)/gi,"");
     s = s.replace(/[ ]{2,}/gi," ");
     s = s.replace(/\n /,"\n");
-    return Math.round( s.split(' ').length / 10) * 10;
+    return Math.round( s.split(' ').length / 5) * 5;
 }
 
 function do_moderate() {
@@ -31,7 +31,7 @@ function do_moderate() {
 	count_words(content_sel+" form") ;
     var words = count_words(content) - spoiled_words;
     var word_count = new Intl.NumberFormat('en-US').format(words);
-    $(summary).append( "<p class='"+(word_count > 7000 ? "bad" : "")+"'>~" + word_count + " words.</p>" )
+    $(summary).append( "<p class='"+(word_count > 7000 ? "bad" : "")+"'>" + word_count + " words.</p>" )
  
     // check for images
     var img_count = $(content_sel+" img").length;
