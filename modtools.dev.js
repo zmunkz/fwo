@@ -9,6 +9,16 @@ document.getElementsByTagName('head')[0].appendChild(jqscript);
 
 var content_sel = ".node.node-type-book .content";
 
+function count_words(obj){
+    var s = $(obj).text();
+    if ( s.length == 0 ) return 0;
+	
+    s = s.replace(/(^\s*)|(\s*$)/gi,"");
+    s = s.replace(/[ ]{2,}/gi," ");
+    s = s.replace(/\n /,"\n");
+    return Math.round( s.split(' ').length / 10) * 10;
+}
+
 function do_moderate() {
     var summary = $("#modtools");
     summary.html("<h3 style='margin:0'>Mod Tools Analysis:</h3>");
@@ -16,15 +26,12 @@ function do_moderate() {
 
     // check length
     var spoiled_words = 
-	( $(".fivestar-static-form-item").text().length>1 ?
-	  $(".fivestar-static-form-item").text().split(' ').length : 0 ) +
-	( $(".book-navigation").text().length>1 ?
-	  $(".book-navigation").text().split(' ').length : 0 ) +
-	( $(content_sel+" form").text().length>1 ?
-	  $(content_sel+" form").text().split(' ').length : 0 );
-    var words = $(content).text().split(' ').length - spoiled_words;
+	count_words(".fivestar-static-form-item") +
+	count_words(".book-navigation") +
+	count_words(content_sel+" form") ;
+    var words = count_words(content) - spoiled_words;
     var word_count = new Intl.NumberFormat('en-US').format(words);
-    $(summary).append( "<p class='"+(word_count > 7000 ? "bad" : "")+"'>" + word_count + " words.</p>" )
+    $(summary).append( "<p class='"+(word_count > 7000 ? "bad" : "")+"'>~" + word_count + " words.</p>" )
  
     // check for images
     var img_count = $(content_sel+" img").length;
@@ -62,9 +69,9 @@ function do_moderate() {
     var adult = $(".adult_theme").length;
     $(summary).append( "<p class='"+(adult > 0 ? "bad adult_theme" : "")+"'>" + adult + " potential adult themes.</p>" )
 
-    $(summary).append("<p style='float:none;'><button style='display:none;' data-comment='This is just for me for testing' type='button' onclick='do_moderate()'>Refresh</button><button type='button' onclick='do_highlight()'>Toggle Highlight</button><button onclick='goToBad();' type='button'>&gt;</button></p>");
+    $(summary).append("<p style='float:none;'><button style='display:none;' data-comment='This is just for me for testing' type='button' onclick='do_moderate()'>Refresh</button><button type='button' onclick='do_highlight()'>Toggle Highlight</button><button onclick='show_first_hit();' type='button'>&gt;</button></p>");
 }
-function goToBad() {
+function show_first_hit() {
     if ( $(content_sel+" .bad").length > 0 ) {
         $(content_sel).addClass("highlight_problems");
         $("html,body").scrollTop( $(content_sel+" .bad").first().offset().top );
