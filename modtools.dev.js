@@ -41,7 +41,7 @@ function do_moderate() {
     $(summary).append( "<p class='"+(url_count > 0 ? "bad url" : "")+"'>" + url_count + " links.</p>" )
 
     // check for possible vulgarity
-    var curse_list=["shit[\\w]*","fuck[\\w]*","cunt","slut","dick[\\w]*","nigger","spic","prick","bastard","bitch[\\w]*","ass[hole|clown|face|es]?","twat","vagina"];
+    var curse_list=["shit[\\w]*","fuck[\\w]*","cunt","slut","dick[\\w]*","nigger","spic","prick","bastard","bitch[\\w]*","ass(?:hole|clown|face|es)?","twat","vagina"];
     $.each(curse_list, function(i,v){
         $(content).html(function(_, html) {
             var re = new RegExp("\\b("+v+")\\b","gi");
@@ -52,7 +52,7 @@ function do_moderate() {
     $(summary).append( "<p class='"+(curses > 0 ? "bad curse_word" : "")+"'>" + curses + " bad words.</p>" )
 
     // check for potential adult themes
-    var adult_content=["[gang]?rape[d|s]?","gor[e|y]","naked","nude","stripped","penis","breast[s]?","tit[s]?","orgasm","ejaculate[d|s]?","orgy","cum"];
+    var adult_content=["(?:gang)?rape[d|s]?","gor[e|y]","naked","nude","stripped","penis","breast[s]?","tit[s]?","orgasm","ejaculate[d|s]?","orgy","cum"];
     $.each(adult_content, function(i,v){
         $(content).html(function(_, html) {
             var re = new RegExp("\\b("+v+")\\b","gi");
