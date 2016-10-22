@@ -59,7 +59,7 @@ function do_moderate() {
     $(summary).append( "<p class='"+(curses > 0 ? "bad curse_word" : "")+"'>" + curses + " bad words.</p>" )
 
     // check for potential adult themes
-    var adult_content=["(?:gang)?rape[d|s]?","gor[e|y]","naked","nude","stripped","penis","breast[s]?","tit[s]?","orgasm","ejaculate[d|s]?","orgy","cum"];
+    var adult_content=["(?:gang)?rape[d|s]?","gor[e|y]","naked","nude","stripped","penis","breast[s]?","tit[s]?","orgasm","ejaculate[d|s]?","orgy"];
     $.each(adult_content, function(i,v){
         $(content).html(function(_, html) {
             var re = new RegExp("\\b("+v+")\\b","gi");
