@@ -22,7 +22,8 @@ function do_moderate() {
 	  $(".book-navigation").text().split(' ').length : 0 ) +
 	( $(content_sel+" form").text().length>1 ?
 	  $(content_sel+" form").text().split(' ').length : 0 );
-    var words = $(content).text().split(' ').length - spoiled_words;
+    //var words = $(content).text().split(' ').length - spoiled_words;
+    var words = $(content).text().split(/(\s+)/).filter(function(el){ return el != " " && el != null && el != "" && el.trim() == el; } ).length - spoiled_words;
     var word_count = new Intl.NumberFormat('en-US').format(words);
     $(summary).append( "<p class='"+(word_count > 7000 ? "bad" : "")+"'>" + word_count + " words.</p>" )
  
