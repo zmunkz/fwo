@@ -63,7 +63,7 @@ function do_moderate() {
     var adult = $(".adult_theme").length;
     $(summary).append( "<p class='"+(adult > 0 ? "bad adult_theme" : "")+"'>" + adult + " potential adult themes.</p>" )
 
-    $(summary).append("<p id='modtools-buttons' style='float:none;'><button style='display:none;' data-comment='This is just for me for testing' type='button' onclick='do_moderate()'>Refresh</button><button type='button' onclick='do_highlight()'>Toggle Highlight</button><button onclick='goToBad();' type='button'>&gt;</button><button id='llmAuditBtn' type='button' onclick='do_llm_audit()'>LLM Audit</button></p><div id='llmResult'></div>");
+    $(summary).append("<div id='modtools-buttons' style='float:none;'><button style='display:none;' data-comment='This is just for me for testing' type='button' onclick='do_moderate()'>Refresh</button>&nbsp;<button type='button' onclick='do_highlight()'>Toggle Highlight</button><button onclick='goToBad();' type='button'>&gt;</button>&nbsp;<button id='llmAuditBtn' type='button' onclick='do_llm_audit()'>LLM Audit</button></div><div id='llmResult'></div>");
 }
 function goToBad() {
     if ( $(content_sel+" .bad").length > 0 ) {
@@ -76,7 +76,7 @@ function do_highlight() {
     else $(content_sel).addClass("highlight_problems");
 }
 
-var mtcss = '.highlight_problems.content > *{color:#aaa;} .highlight_problems a.bad,.highlight_problems .bad, #modtools .bad{color:red;background-color:#fcc;font-weight:bold;}.highlight_problems .bad.adult_theme,#modtools .bad.adult_theme{color:darkred;background-collor:#daa;}.highlight_problems.content .bad.adult_theme{border-color:darkred;}.highlight_problems img.bad{border:1px solid red; background:#fcc; padding:10px;}.highlight_problems.content .bad.url{border-color:#0b0;}.highlight_problems .bad.url,#modtools .bad.url{color:darkgreen;background-color:#afa;}#modtools{border:1px solid #aaf; background-color:#eaeaff; margin: 0 0 1em; padding: 1em 0 1em 1em;} #modtools p {float:left; margin-right:5px;}.highlight_problems.content .bad {border:1px solid red;padding:5px;}',
+var mtcss = '.highlight_problems.content > *{color:#aaa;} .highlight_problems a.bad,.highlight_problems .bad, #modtools .bad{color:red;background-color:#fcc;font-weight:bold;}.highlight_problems .bad.adult_theme,#modtools .bad.adult_theme{color:darkred;background-collor:#daa;}.highlight_problems.content .bad.adult_theme{border-color:darkred;}.highlight_problems img.bad{border:1px solid red; background:#fcc; padding:10px;}.highlight_problems.content .bad.url{border-color:#0b0;}.highlight_problems .bad.url,#modtools .bad.url{color:darkgreen;background-color:#afa;}#modtools{border:1px solid #aaf; background-color:#eaeaff; margin: 0 0 1em; padding: 1em 0 1em 1em;} #modtools p {float:left; margin-right:5px;}.highlight_problems.content .bad {border:1px solid red;padding:5px;}#llmAuditBtn{margin-left: 1em;}',
     mthead = document.getElementsByTagName('head')[0],
     mtstyle = document.createElement('style');
 mtstyle.type = 'text/css';
@@ -117,9 +117,9 @@ async function do_llm_audit() {
         const data = await res.json();
         const gptMessage = data.choices?.[0]?.message?.content ?? "No response from GPT.";
 
-        $("#llmResult").html("<div><h4>LLM Audit Summary:</h4><p>" + gptMessage.replace(/\n/g, "<br>") + "</p></div>");
+        $("#llmResult").html("<div><h4>LLM Audit:</h4><p>" + gptMessage.replace(/\n/g, "<br>") + "</p></div>");
     } catch (e) {
-        $("#llmResult").html("<p style='color:red;'>LLM Audit failed: " + e.message + "</p>");
+        $("#llmResult").html("<div style='color:red;'>Sorry, the bots failed :-(<!--" + gptMessage.replace(/\n/g, "<br>") + "--></div>");
     }
 }
 
