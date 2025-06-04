@@ -1,4 +1,4 @@
-// INTENDED FOR fantasy-writers.org AS OF 2016-10-08
+// INTENDED FOR fantasy-writers.org AS OF 2016-10-08 rev 2025
 // they use an old version
 window.jQuery = window.$ = undefined;
 
@@ -9,16 +9,6 @@ document.getElementsByTagName('head')[0].appendChild(jqscript);
 
 var content_sel = ".node.node-type-book .content";
 
-function count_words(obj){
-    var s = $(obj).text();
-    if ( s.length == 0 ) return 0;
-	
-    s = s.replace(/(^\s*)|(\s*$)/gi,"");
-    s = s.replace(/[ ]{2,}/gi," ");
-    s = s.replace(/\n /,"\n");
-    return Math.round( s.split(' ').length / 5) * 5;
-}
-
 function do_moderate() {
     var summary = $("#modtools");
     summary.html("<h3 style='margin:0'>Mod Tools Analysis:</h3>");
@@ -26,10 +16,14 @@ function do_moderate() {
 
     // check length
     var spoiled_words = 
-	count_words(".fivestar-static-form-item") +
-	count_words(".book-navigation") +
-	count_words(content_sel+" form") ;
-    var words = count_words(content) - spoiled_words;
+	( $(".fivestar-static-form-item").text().length>1 ?
+	  $(".fivestar-static-form-item").text().split(' ').length : 0 ) +
+	( $(".book-navigation").text().length>1 ?
+	  $(".book-navigation").text().split(' ').length : 0 ) +
+	( $(content_sel+" form").text().length>1 ?
+	  $(content_sel+" form").text().split(' ').length : 0 );
+    //var words = $(content).text().split(' ').length - spoiled_words;
+    var words = $(content).text().split(/(\s+)/).filter(function(el){ return el != " " && el != null && el != "" && el.trim() == el; } ).length - spoiled_words;
     var word_count = new Intl.NumberFormat('en-US').format(words);
     $(summary).append( "<p class='"+(word_count > 7000 ? "bad" : "")+"'>" + word_count + " words.</p>" )
  
@@ -69,9 +63,9 @@ function do_moderate() {
     var adult = $(".adult_theme").length;
     $(summary).append( "<p class='"+(adult > 0 ? "bad adult_theme" : "")+"'>" + adult + " potential adult themes.</p>" )
 
-    $(summary).append("<p style='float:none;'><button style='display:none;' data-comment='This is just for me for testing' type='button' onclick='do_moderate()'>Refresh</button><button type='button' onclick='do_highlight()'>Toggle Highlight</button><button onclick='show_first_hit();' type='button'>&gt;</button></p>");
+    $(summary).append("<p id='modtools-buttons' style='float:none;'><button style='display:none;' data-comment='This is just for me for testing' type='button' onclick='do_moderate()'>Refresh</button><button type='button' onclick='do_highlight()'>Toggle Highlight</button><button onclick='goToBad();' type='button'>&gt;</button><button id='llmAuditBtn' type='button' onclick='do_llm_audit()'>LLM Audit</button></p><div id='llmResult'></div>");
 }
-function show_first_hit() {
+function goToBad() {
     if ( $(content_sel+" .bad").length > 0 ) {
         $(content_sel).addClass("highlight_problems");
         $("html,body").scrollTop( $(content_sel+" .bad").first().offset().top );
@@ -105,5 +99,29 @@ function wait_for_init(i) {
     if (typeof jQuery == 'undefined') setTimeout( "wait_for_init(" + --i + ")", 100);
     else do_init();
 }
+async function do_llm_audit() {
+    $("#llmAuditBtn").remove();
+    $("#llmResult").html("<p><em>One moment...</em></p>");
+
+    const contentText = $(content_sel).text().trim().replace(/\s+/g, " ").slice(0, 8000);
+
+    try {
+        const res = await fetch("https://zmunk.com/fwo_modcheck.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ content: contentText })
+        });
+
+        if (!res.ok) throw new Error("LLM check failed");
+
+        const data = await res.json();
+        const gptMessage = data.choices?.[0]?.message?.content ?? "No response from GPT.";
+
+        $("#llmResult").html("<div><h4>LLM Audit Summary:</h4><p>" + gptMessage.replace(/\n/g, "<br>") + "</p></div>");
+    } catch (e) {
+        $("#llmResult").html("<p style='color:red;'>LLM Audit failed: " + e.message + "</p>");
+    }
+}
+
 setTimeout( "wait_for_init(20)", 100);
 
