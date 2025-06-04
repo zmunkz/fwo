@@ -62,8 +62,21 @@ function do_moderate() {
     });
     var adult = $(".adult_theme").length;
     $(summary).append( "<p class='"+(adult > 0 ? "bad adult_theme" : "")+"'>" + adult + " potential adult themes.</p>" )
-
-    $(summary).append("<div id='modtools-buttons' style='float:none;'><button style='display:none;' data-comment='This is just for me for testing' type='button' onclick='do_moderate()'>Refresh</button>&nbsp;<button type='button' onclick='do_highlight()'>Toggle Highlight</button><button onclick='goToBad();' type='button'>&gt;</button>&nbsp;<button id='llmAuditBtn' type='button' onclick='do_llm_audit()'>LLM Audit</button></div><div id='llmResult'></div>");
+    let llmButtonHtml = "";
+    if (words > 8000) {
+        llmButtonHtml = `<button id="llmAuditBtn" type="button" disabled>(Too long for LLM)</button>`;
+    } else {
+        llmButtonHtml = `<button id="llmAuditBtn" type="button" onclick="do_llm_audit()">LLM Audit</button>`;
+    }
+    $(summary).append(`
+  <div id="modtools-buttons" style="float:none;">
+    <button style="display:none;" data-comment="This is just for me for testing" type="button" onclick="do_moderate()">Refresh</button>
+    <button type="button" onclick="do_highlight()">Toggle Highlight</button>
+    <button onclick="goToBad();" type="button">&gt;</button>
+    ${llmButtonHtml}
+  </div>
+  <div id="llmResult" style="margin-top:1em;"></div>
+`);
 }
 function goToBad() {
     if ( $(content_sel+" .bad").length > 0 ) {
