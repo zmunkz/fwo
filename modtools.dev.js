@@ -117,7 +117,7 @@ async function do_llm_audit() {
         const data = await res.json();
         const gptMessage = data.choices?.[0]?.message?.content ?? "No response from GPT.";
 
-        $("#llmResult").html("<div><h4>LLM Audit:</h4><p>" + gptMessage.replace(/\n/g, "<br>") + "</p></div>");
+        $("#llmResult").html("<div><h4>LLM Audit:</h4><p style='float:none;'>" + gptMessage.replace(/\n/g, "<br>") + "</p></div>");
     } catch (e) {
         $("#llmResult").html("<div style='color:red;'>Sorry, the bots failed :-(<!--" + gptMessage.replace(/\n/g, "<br>") + "--></div>");
     }
