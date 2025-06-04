@@ -1,4 +1,4 @@
-// INTENDED FOR fantasy-writers.org AS OF 2016-10-08
+// INTENDED FOR fantasy-writers.org AS OF 2016-10-08 rev 2022
 // they use an old version
 window.jQuery = window.$ = undefined;
 
