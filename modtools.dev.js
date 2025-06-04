@@ -101,7 +101,7 @@ function wait_for_init(i) {
 }
 async function do_llm_audit() {
     $("#llmAuditBtn").remove();
-    $("#llmResult").html("<p><em>One moment...</em></p>");
+    $("#llmResult").html("<div><em>Waking up the bots...</em></div>");
 
     const contentText = $(content_sel).text().trim().replace(/\s+/g, " ").slice(0, 8000);
 
