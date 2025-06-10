@@ -61,11 +61,12 @@ function do_moderate() {
     // check for possible vulgarity
     var curse_list = ["shit[\\w]*", "fuck[\\w]*", "motherfuck[\\w]*", "cunt", "slut", "dick[\\w]*", "nigger", "piss", "cock[\\w]*", "spic", "prick", "bastard", "bitch[\\w]*", "ass(?:hole|clown|face|es)?", "twat", "vagina"];
     let curseMatches = 0;
-    let curseRegexes = curse_list.map(v => new RegExp("(^|[^\\w])(" + v + ")(?=[^\\w]|$)", "gi"));
+    let curseRegexes = curse_list.map(v => new RegExp("(^|[^\\w])(" + v + ")", "gi"));
 
     curseRegexes.forEach(re => {
         const matches = normalizedText.match(re);
-        if (matches) curseMatches += matches.length;
+        const matches = [...normalizedText.matchAll(re)];
+        curseMatches += matches.length;
     });
 
     curse_list.forEach(pattern => {
@@ -82,11 +83,11 @@ function do_moderate() {
     // check for potential adult themes
     var adult_content = ["(?:gang)?rape[d|s]?", "gor[e|y]", "naked", "nude", "cum", "jizz", "torture", "stripped", "penis", "breast[s]?", "tit[s]?", "orgasm", "ejaculate[d|s]?", "orgy"];
     let adultMatches = 0;
-    let adultRegexes = adult_content.map(v => new RegExp("(^|[^\\w])(" + v + ")(?=[^\\w]|$)", "gi"));
+    let adultRegexes = adult_content.map(v => new RegExp("(^|[^\\w])(" + v + ")", "gi"));
 
     adultRegexes.forEach(re => {
-        const matches = normalizedText.match(re);
-        if (matches) adultMatches += matches.length;
+        const matches = [...normalizedText.matchAll(re)];
+        adultMatches += matches.length;
     });
     
     adult_content.forEach(pattern => {
