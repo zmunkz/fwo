@@ -20,7 +20,7 @@ function extractNormalizedText(el) {
     const cleaned = text.replace(/\s+/g, " ").trim();
 
     // Show in debug box
-    //$("#debugTextDump").text(cleaned).show();
+    $("#debugTextDump").text(cleaned).show();
 
     return cleaned;
 }
@@ -29,7 +29,7 @@ function do_moderate() {
     var summary = $("#modtools");
     summary.html("<h3 style='margin:0'>Mod Tools Analysis:</h3>");
     var contentEl = $(content_sel)[0];
-    //$("#modtools").append(`<pre id="debugTextDump" style="display:none; white-space:pre-wrap; background:#eef; border:1px dashed #99f; padding:0.5em; margin-top:1em;"></pre>`);
+    $("#modtools").append(`<pre id="debugTextDump" style="display:none; white-space:pre-wrap; background:#eef; border:1px dashed #99f; padding:0.5em; margin-top:1em;"></pre>`);
     var normalizedText = extractNormalizedText(contentEl);
 
     // check length
