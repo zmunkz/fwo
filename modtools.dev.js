@@ -126,7 +126,7 @@ else mtstyle.appendChild(document.createTextNode(mtcss));
 mthead.appendChild(mtstyle);
 
 function do_init() {
-    $(".submitted").first().parent().prepend("<div id='modtools'><button id='do_m_btn'>Run ModTools</button></div>");
+    $(".submitted").first().parent().prepend("<div id='modtools'><button id='do_m_btn'>Run Mod Tools</button></div>");
     $("#do_m_btn").click(function(e){
         do_moderate();
         $(this).remove();
