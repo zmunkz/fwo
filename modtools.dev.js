@@ -146,7 +146,10 @@ async function do_llm_audit() {
     $("#llmAuditBtn").remove();
     $("#llmResult").html("<div><em>Waking up the bots...</em></div>");
 
-    const contentText = extractNormalizedText($("#content-modcleaned")[0]).slice(0, 8000);
+    const contentText = extractNormalizedText($("#content-modcleaned")[0])
+        .split(/\s+/)
+        .slice(0, 8000)
+        .join(" ");
 
     console.log("Checking: " + contentText );
     
