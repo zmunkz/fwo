@@ -30,7 +30,7 @@ function cleanAndHighlightContent() {
     // Remove all tags except basic structure
     clone.find("*":not(p):not(div)).each(function() {
         $(this).replaceWith($(this).text());
-    });
+    }));
 
     let html = clone.html();
 
