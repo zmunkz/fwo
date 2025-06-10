@@ -1,4 +1,4 @@
-// INTENDED FOR fantasy-writers.org AS OF 2016-10-08 rev 2025.18
+// INTENDED FOR fantasy-writers.org AS OF 2016-10-08 rev 2025.19
 // jQuery is old, we load a known version
 window.jQuery = window.$ = undefined;
 
@@ -9,6 +9,9 @@ document.getElementsByTagName('head')[0].appendChild(jqscript);
 
 var content_sel = ".node.node-type-book .content";
 
+const curseWords = ["shit\\w*", "fuck\\w*", "motherfuck\\w*", "cunt", "slut", "dick\\w*", "nigger", "piss", "cock\\w*", "spic", "prick", "bastard", "bitch\\w*", "ass(?:hole|clown|face|es)?", "twat", "vagina"];
+const adultWords = ["(?:gang)?rape(?:d|s)?", "gor(?:e|y)", "naked", "nude", "cum", "jizz", "torture", "stripped", "penis", "breasts?", "tits?", "orgasm", "ejaculate(?:d|s)?", "orgy"];
+
 function extractNormalizedText(el) {
     const clone = el.cloneNode(true);
     const text = clone.textContent || clone.innerText || "";
@@ -16,33 +19,34 @@ function extractNormalizedText(el) {
 }
 
 function highlightMatches(text, wordList, cssClass, tooltip) {
-    const re = new RegExp("\\b(" + wordList.join("|") + ")\\b", "gi");
+    const re = new RegExp("(?<!\\w)(" + wordList.join("|") + ")(?!\\w)", "gi");
     return text.replace(re, (match) => `<span class="bad ${cssClass}" title="${tooltip}">${match}</span>`);
+}
+
+function countMatches(text, wordList) {
+    const re = new RegExp("(?<!\\w)(" + wordList.join("|") + ")(?!\\w)", "gi");
+    return (text.match(re) || []).length;
 }
 
 function cleanAndHighlightContent() {
     const rawContent = $(content_sel);
     const clone = rawContent.clone();
 
-    // Remove unwanted footer sections
-    clone.find(".fivestar-static-form-item, .book-navigation, #notification-ui-options-form-0").remove();
+    const keepers = clone.find(".fivestar-static-form-item, .book-navigation, #notification-ui-options-form-0").detach();
 
-    // Remove all tags except basic structure
     clone.find('*').not('p, div').each(function () {
         $(this).replaceWith($(this).text());
     });
+    clone.find('div').each(function () {
+        const $p = $('<p></p>').html($(this).text());
+        $(this).replaceWith($p);
+    });
 
     let html = clone.html();
-
-    // Highlight curse words
-    const curseWords = ["shit[\\w]*", "fuck[\\w]*", "motherfuck[\\w]*", "cunt", "slut", "dick[\\w]*", "nigger", "piss", "cock[\\w]*", "spic", "prick", "bastard", "bitch[\\w]*", "ass(?:hole|clown|face|es)?", "twat", "vagina"];
     html = highlightMatches(html, curseWords, "curse_word", "Word is potentially vulgar");
-
-    // Highlight adult themes
-    const adultWords = ["(?:gang)?rape(?:d|s)?", "gor(?:e|y)", "naked", "nude", "cum", "jizz", "torture", "stripped", "penis", "breasts?", "tits?", "orgasm", "ejaculate(?:d|s)?", "orgy"];
     html = highlightMatches(html, adultWords, "adult_theme", "Word might suggest adult themes");
 
-    return html;
+    return $('<div>').append(html).append(keepers).html();
 }
 
 function do_moderate() {
@@ -69,10 +73,10 @@ function do_moderate() {
     $(content_sel + " a").addClass("bad url");
     summary.append(`<p class='${url_count > 0 ? "bad url" : ""}'>${url_count} links.</p>`);
 
-    const curseMatches = (normalizedText.match(/\b(?:shit[\w]*|fuck[\w]*|motherfuck[\w]*|cunt|slut|dick[\w]*|nigger|piss|cock[\w]*|spic|prick|bastard|bitch[\w]*|ass(?:hole|clown|face|es)?|twat|vagina)\b/gi) || []).length;
+    const curseMatches = countMatches(normalizedText, curseWords);
     summary.append(`<p class='${curseMatches > 0 ? "bad curse_word" : ""}'>${curseMatches} bad words.</p>`);
 
-    const adultMatches = (normalizedText.match(/\b(?:gang)?rape(?:d|s)?|gor(?:e|y)|naked|nude|cum|jizz|torture|stripped|penis|breasts?|tits?|orgasm|ejaculate(?:d|s)?|orgy\b/gi) || []).length;
+    const adultMatches = countMatches(normalizedText, adultWords);
     summary.append(`<p class='${adultMatches > 0 ? "bad adult_theme" : ""}'>${adultMatches} potential adult themes.</p>`);
 
     const llmButtonHtml = words > 8000 ?
@@ -81,19 +85,15 @@ function do_moderate() {
 
     summary.append(`
 <div id="modtools-buttons" style="float:none;">
-  <button style="display:none;" data-comment="This is just for me for testing" type="button" onclick="do_moderate()">Refresh</button>
+  <button style="display:none;" type="button" onclick="do_moderate()">Refresh</button>
   <button type="button" onclick="do_highlight()">Toggle Highlight</button>
   <button onclick="goToBad();" type="button">&gt;</button>
   ${llmButtonHtml}
 </div>
 <div id="llmResult" style="margin-top:1em;"></div>`);
 
-    // Replace live content
-    const visibleContent = cleanAndHighlightContent();
-    const footerBlocks = $(content_sel).find(".fivestar-static-form-item, .book-navigation, #notification-ui-options-form-0").detach();
-    $(content_sel).html(visibleContent);
-    $(content_sel).append('<div class="modtools-footer"></div>');
-    $(".modtools-footer").append(footerBlocks);
+    const cleaned = cleanAndHighlightContent();
+    $(content_sel).html(cleaned);
 }
 
 function goToBad() {
@@ -115,8 +115,7 @@ var mtcss = `.highlight_problems.content > *{color:#aaa;}
 #modtools {border:1px solid #aaf; background-color:#eaeaff; margin: 0 0 1em; padding: 1em 0 1em 1em;} 
 #modtools p {float:left; margin-right:5px;}
 .highlight_problems .bad {border:1px solid red;padding:2px 4px;}
-#llmAuditBtn{margin-left: 1em;}
-.modtools-footer {margin-top: 2em; padding-top: 1em; border-top: 1px dashed #ccc;}`;
+#llmAuditBtn{margin-left: 1em;}`;
 
 var mthead = document.getElementsByTagName('head')[0],
     mtstyle = document.createElement('style');
