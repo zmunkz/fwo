@@ -12,17 +12,29 @@ var content_sel = ".node.node-type-book .content";
 function extractNormalizedText(el) {
     const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null, false);
     let chunks = [];
+    let lastParent = null;
+
     while (walker.nextNode()) {
-        const t = walker.currentNode.nodeValue;
-        if (t && t.trim()) chunks.push(t);
+        const node = walker.currentNode;
+        const text = node.nodeValue;
+
+        // Skip empty or whitespace-only
+        if (!text || !text.trim()) continue;
+
+        // If the parent changed (e.g. different tag), break into a new chunk with space
+        if (lastParent && lastParent !== node.parentNode) {
+            chunks.push(" ");
+        }
+
+        chunks.push(text);
+        lastParent = node.parentNode;
     }
-    const text = chunks.join(" ").replace(/\s+/g, " ").trim();
 
-    // For inspection/debugging
+    const text = chunks.join("").replace(/\s+/g, " ").trim();
     $("#debugTextDump").text(text).show();
-
     return text;
 }
+
 
 
 function do_moderate() {
