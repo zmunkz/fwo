@@ -148,6 +148,8 @@ async function do_llm_audit() {
 
     const contentText = extractNormalizedText($("#content-modcleaned")[0]).slice(0, 8000);
 
+    console.log("Checking: " + contentText );
+    
     try {
         const res = await fetch("https://zmunk.com/fwo_modcheck.php", {
             method: "POST",
