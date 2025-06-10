@@ -28,7 +28,7 @@ function countMatches(text, wordList) {
     return (text.match(re) || []).length;
 }
 
-function cleanAndHighlightContent() {
+function cleanContent() {
     const rawContent = $(".node.node-type-book .content");
     const clone = rawContent.clone();
 
@@ -43,16 +43,22 @@ function cleanAndHighlightContent() {
     });
 
     let html = clone.html();
-    html = highlightMatches(html, curseWords, "curse_word", "Word is potentially vulgar");
-    html = highlightMatches(html, adultWords, "adult_theme", "Word might suggest adult themes");
 
     $(".node.node-type-book .content").html(`<div id='content-modcleaned'>${html}</div>`).append(keepers);
+}
+
+function highlightContent() {
+    html = $("#content-modcleaned").html();
+    html = highlightMatches(html, curseWords, "curse_word", "Word is potentially vulgar");
+    html = highlightMatches(html, adultWords, "adult_theme", "Word might suggest adult themes");
 }
 
 function do_moderate() {
     var summary = $("#modtools");
     summary.html("<h3 style='margin:0'>Mod Tools Analysis:</h3>");
 
+    cleanContent();
+    
     const contentEl = $("#content-modcleaned")[0];
     const normalizedText = extractNormalizedText(contentEl);
 
@@ -87,7 +93,7 @@ function do_moderate() {
 </div>
 <div id="llmResult" style="margin-top:1em;"></div>`);
 
-    cleanAndHighlightContent();
+    highlightContent();
 }
 
 function goToBad() {
