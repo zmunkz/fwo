@@ -1,4 +1,4 @@
-// INTENDED FOR fantasy-writers.org AS OF 2016-10-08 rev 2025.19
+// INTENDED FOR fantasy-writers.org AS OF 2016-10-08 rev 2025.20
 // jQuery is old, we load a known version
 window.jQuery = window.$ = undefined;
 
@@ -7,7 +7,7 @@ jqscript.type = "text/javascript";
 jqscript.src = "https://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js";
 document.getElementsByTagName('head')[0].appendChild(jqscript);
 
-var content_sel = ".node.node-type-book .content";
+var content_sel = "#content-modcleaned";
 
 const curseWords = ["shit\\w*", "fuck\\w*", "motherfuck\\w*", "cunt", "slut", "dick\\w*", "nigger", "piss", "cock\\w*", "spic", "prick", "bastard", "bitch\\w*", "ass(?:hole|clown|face|es)?", "twat", "vagina"];
 const adultWords = ["(?:gang)?rape(?:d|s)?", "gor(?:e|y)", "naked", "nude", "cum", "jizz", "torture", "stripped", "penis", "breasts?", "tits?", "orgasm", "ejaculate(?:d|s)?", "orgy"];
@@ -29,7 +29,7 @@ function countMatches(text, wordList) {
 }
 
 function cleanAndHighlightContent() {
-    const rawContent = $(content_sel);
+    const rawContent = $(".node.node-type-book .content");
     const clone = rawContent.clone();
 
     const keepers = clone.find(".fivestar-static-form-item, .book-navigation, #notification-ui-options-form-0").detach();
@@ -46,31 +46,26 @@ function cleanAndHighlightContent() {
     html = highlightMatches(html, curseWords, "curse_word", "Word is potentially vulgar");
     html = highlightMatches(html, adultWords, "adult_theme", "Word might suggest adult themes");
 
-    return $('<div>').append(html).append(keepers).html();
+    $(".node.node-type-book .content").html(`<div id='content-modcleaned'>${html}</div>`).append(keepers);
 }
 
 function do_moderate() {
     var summary = $("#modtools");
     summary.html("<h3 style='margin:0'>Mod Tools Analysis:</h3>");
 
-    const contentEl = $(content_sel)[0];
+    const contentEl = $("#content-modcleaned")[0];
     const normalizedText = extractNormalizedText(contentEl);
 
-    const spoiled_words =
-        ($(".fivestar-static-form-item").text().split(' ').length || 0) +
-        ($(".book-navigation").text().split(' ').length || 0) +
-        ($(content_sel + " form").text().split(' ').length || 0);
-    const words = normalizedText.split(/\s+/).filter(w => w.trim() !== "").length - spoiled_words;
+    const words = normalizedText.split(/\s+/).filter(w => w.trim() !== "").length;
     const word_count = new Intl.NumberFormat('en-US').format(words);
-    summary.append(`<p class='${words > 7000 ? "bad" : ""}'>${word_count} words.</p>`);
+    summary.append(`<p class='${words > 7000 ? "bad" : ""}'>~${word_count} words.</p>`);
 
-    const img_count = $(content_sel + " img").length;
-    $(content_sel + " img").addClass("bad");
+    const img_count = $("#content-modcleaned img").length;
+    $("#content-modcleaned img").addClass("bad");
     summary.append(`<p class='${img_count > 0 ? "bad" : ""}'>${img_count} images.</p>`);
 
-    const spoiled_url = $(".fivestar-static-form-item a, .book-navigation a, " + content_sel + " form a").length;
-    const url_count = $(content_sel + " a").length - spoiled_url;
-    $(content_sel + " a").addClass("bad url");
+    const url_count = $("#content-modcleaned a").length;
+    $("#content-modcleaned a").addClass("bad url");
     summary.append(`<p class='${url_count > 0 ? "bad url" : ""}'>${url_count} links.</p>`);
 
     const curseMatches = countMatches(normalizedText, curseWords);
@@ -92,19 +87,18 @@ function do_moderate() {
 </div>
 <div id="llmResult" style="margin-top:1em;"></div>`);
 
-    const cleaned = cleanAndHighlightContent();
-    $(content_sel).html(cleaned);
+    cleanAndHighlightContent();
 }
 
 function goToBad() {
-    if ($(content_sel + " .bad").length > 0) {
-        $(content_sel).addClass("highlight_problems");
-        $("html,body").scrollTop($(content_sel + " .bad").first().offset().top);
+    if ($("#content-modcleaned .bad").length > 0) {
+        $("#content-modcleaned").addClass("highlight_problems");
+        $("html,body").scrollTop($("#content-modcleaned .bad").first().offset().top);
     }
 }
 
 function do_highlight() {
-    $(content_sel).toggleClass("highlight_problems");
+    $("#content-modcleaned").toggleClass("highlight_problems");
 }
 
 var mtcss = `.highlight_problems.content > *{color:#aaa;} 
@@ -142,7 +136,7 @@ async function do_llm_audit() {
     $("#llmAuditBtn").remove();
     $("#llmResult").html("<div><em>Waking up the bots...</em></div>");
 
-    const contentText = extractNormalizedText($(content_sel)[0]).slice(0, 8000);
+    const contentText = extractNormalizedText($("#content-modcleaned")[0]).slice(0, 8000);
 
     try {
         const res = await fetch("https://zmunk.com/fwo_modcheck.php", {
