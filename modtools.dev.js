@@ -108,7 +108,7 @@ function do_highlight() {
     $("#content-modcleaned").toggleClass("highlight_problems");
 }
 
-var mtcss = `.highlight_problems.content-modcleaned > *{color:#aaa;} 
+var mtcss = `.highlight_problems#content-modcleaned > *{color:#aaa;} 
 .highlight_problems .bad, #modtools .bad {color:red;background-color:#fcc;font-weight:bold;}
 .highlight_problems .bad.adult_theme,#modtools .bad.adult_theme {color:darkred;background-color:#daa;}
 .highlight_problems .bad.url, #modtools .bad.url {color:darkgreen;background-color:#afa;}
@@ -126,8 +126,11 @@ else mtstyle.appendChild(document.createTextNode(mtcss));
 mthead.appendChild(mtstyle);
 
 function do_init() {
-    $(".submitted").first().parent().prepend("<div id='modtools'></div>");
-    do_moderate();
+    $(".submitted").first().parent().prepend("<div id='modtools'><button id='do_m_btn' value='GO' /></div>");
+    $("#do_m_btn").click(function(){
+        do_moderate();
+        $(this).remove();
+    });
 }
 
 function wait_for_init(i) {
