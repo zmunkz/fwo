@@ -13,11 +13,15 @@ function extractNormalizedText(el) {
     const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null, false);
     let chunks = [];
     while (walker.nextNode()) {
-        if (walker.currentNode.nodeValue.trim()) {
-            chunks.push(walker.currentNode.nodeValue);
-        }
+        const t = walker.currentNode.nodeValue;
+        if (t && t.trim()) chunks.push(t);
     }
-    return chunks.join(" ").replace(/\s+/g, " ").trim();
+    const text = chunks.join(" ").replace(/\s+/g, " ").trim();
+
+    // For inspection/debugging
+    $("#debugTextDump").text(text).show();
+
+    return text;
 }
 
 
@@ -108,6 +112,8 @@ function do_moderate() {
   </div>
   <div id="llmResult" style="margin-top:1em;"></div>
 `);
+
+    $("#modtools").append(`<pre id="debugTextDump" style="display:none; white-space:pre-wrap; background:#eef; border:1px dashed #99f; padding:0.5em; margin-top:1em;"></pre>`);
 }
 
 function goToBad() {
