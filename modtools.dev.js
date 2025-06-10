@@ -61,14 +61,15 @@ function do_moderate() {
     // check for possible vulgarity
     var curse_list = ["shit[\\w]*", "fuck[\\w]*", "motherfuck[\\w]*", "cunt", "slut", "dick[\\w]*", "nigger", "piss", "cock[\\w]*", "spic", "prick", "bastard", "bitch[\\w]*", "ass(?:hole|clown|face|es)?", "twat", "vagina"];
     let curseMatches = 0;
-    let curseRegexes = curse_list.map(v => new RegExp("\\b(" + v + ")\\b", "gi"));
+    let curseRegexes = curse_list.map(v => new RegExp("(" + v + ")", "gi"));
 
     curseRegexes.forEach(re => {
-        if (normalizedText.match(re)) curseMatches++;
+        const matches = normalizedText.match(re);
+        if (matches) curseMatches += matches.length;
     });
 
     curse_list.forEach(pattern => {
-        const re = new RegExp("\\b(" + pattern + ")\\b", "gi");
+        const re = new RegExp("(" + pattern + ")", "gi");
         $(content_sel).html(function (_, html) {
             return html.replace(re, "<span class='bad curse_word' title='Word is potentially vulgar'>$1</span>");
         });
@@ -80,14 +81,15 @@ function do_moderate() {
     // check for potential adult themes
     var adult_content = ["(?:gang)?rape[d|s]?", "gor[e|y]", "naked", "nude", "cum", "jizz", "torture", "stripped", "penis", "breast[s]?", "tit[s]?", "orgasm", "ejaculate[d|s]?", "orgy"];
     let adultMatches = 0;
-    let adultRegexes = adult_content.map(v => new RegExp("\\b(" + v + ")\\b", "gi"));
+    let adultRegexes = adult_content.map(v => new RegExp("(" + v + ")", "gi"));
 
     adultRegexes.forEach(re => {
-        if (normalizedText.match(re)) adultMatches++;
+        const matches = normalizedText.match(re);
+        if (matches) adultMatches += matches.length;
     });
     
     adult_content.forEach(pattern => {
-        const re = new RegExp("\\b(" + pattern + ")\\b", "gi");
+        const re = new RegExp("(" + pattern + ")", "gi");
         $(content_sel).html(function (_, html) {
             return html.replace(re, "<span class='bad adult_theme' title='Word might suggest adult themes'>$1</span>");
         });
