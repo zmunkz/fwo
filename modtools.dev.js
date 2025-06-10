@@ -20,7 +20,7 @@ function extractNormalizedText(el) {
     const cleaned = text.replace(/\s+/g, " ").trim();
 
     // Show in debug box
-    $("#debugTextDump").text(cleaned).show();
+    //$("#debugTextDump").text(cleaned).show();
 
     return cleaned;
 }
@@ -32,7 +32,7 @@ function do_moderate() {
     var summary = $("#modtools");
     summary.html("<h3 style='margin:0'>Mod Tools Analysis:</h3>");
     var contentEl = $(content_sel)[0];
-    $("#modtools").append(`<pre id="debugTextDump" style="display:none; white-space:pre-wrap; background:#eef; border:1px dashed #99f; padding:0.5em; margin-top:1em;"></pre>`);
+    //$("#modtools").append(`<pre id="debugTextDump" style="display:none; white-space:pre-wrap; background:#eef; border:1px dashed #99f; padding:0.5em; margin-top:1em;"></pre>`);
     var normalizedText = extractNormalizedText(contentEl);
 
     // check length
@@ -62,7 +62,7 @@ function do_moderate() {
     $(summary).append("<p class='" + (url_count > 0 ? "bad url" : "") + "'>" + url_count + " links.</p>");
 
     // check for possible vulgarity
-    var curse_list = ["shit[\\w]*", "fuck[\\w]*", "cunt", "slut", "dick[\\w]*", "nigger", "spic", "prick", "bastard", "bitch[\\w]*", "ass(?:hole|clown|face|es)?", "twat", "vagina"];
+    var curse_list = ["shit[\\w]*", "fuck[\\w]*", "motherfuck[\\w]*", "cunt", "slut", "dick[\\w]*", "nigger", "piss", "cock[\\w]*", "spic", "prick", "bastard", "bitch[\\w]*", "ass(?:hole|clown|face|es)?", "twat", "vagina"];
     let curseMatches = 0;
     let curseRegexes = curse_list.map(v => new RegExp("\\b(" + v + ")\\b", "gi"));
 
@@ -76,8 +76,8 @@ function do_moderate() {
             return html.replace(re, "<span class='bad curse_word' title='Word is potentially vulgar'>$1</span>");
         });
     });
-
     var curses = $(".curse_word").length;
+    
     $(summary).append("<p class='" + (curses > 0 ? "bad curse_word" : "") + "'>" + curses + " bad words.</p>");
 
     // check for potential adult themes
