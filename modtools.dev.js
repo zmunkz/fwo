@@ -64,7 +64,6 @@ function do_moderate() {
     let curseRegexes = curse_list.map(v => new RegExp("(^|[^\\w])(" + v + ")", "gi"));
 
     curseRegexes.forEach(re => {
-        const matches = normalizedText.match(re);
         const matches = [...normalizedText.matchAll(re)];
         curseMatches += matches.length;
     });
