@@ -51,6 +51,7 @@ function highlightContent() {
     html = $("#content-modcleaned").html();
     html = highlightMatches(html, curseWords, "curse_word", "Word is potentially vulgar");
     html = highlightMatches(html, adultWords, "adult_theme", "Word might suggest adult themes");
+    $("#content-modcleaned").html(html);
 }
 
 function do_moderate() {
