@@ -1,4 +1,4 @@
-// INTENDED FOR fantasy-writers.org AS OF 2016-10-08 rev 2025.17
+// INTENDED FOR fantasy-writers.org AS OF 2016-10-08 rev 2025.18
 // jQuery is old, we load a known version
 window.jQuery = window.$ = undefined;
 
@@ -28,9 +28,9 @@ function cleanAndHighlightContent() {
     clone.find(".fivestar-static-form-item, .book-navigation, #notification-ui-options-form-0").remove();
 
     // Remove all tags except basic structure
-    clone.find("*":not(p):not(div)).each(function() {
+    clone.find('*').not('p, div').each(function () {
         $(this).replaceWith($(this).text());
-    }));
+    });
 
     let html = clone.html();
 
