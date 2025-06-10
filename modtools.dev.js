@@ -11,13 +11,15 @@ var content_sel = ".node.node-type-book .content";
 
 function extractNormalizedText(el) {
     const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null, false);
-    let text = "";
+    let chunks = [];
     while (walker.nextNode()) {
-        let t = walker.currentNode.nodeValue;
-        if (t && t.trim()) text += t.trim() + " ";
+        if (walker.currentNode.nodeValue.trim()) {
+            chunks.push(walker.currentNode.nodeValue);
+        }
     }
-    return text.trim();
+    return chunks.join(" ").replace(/\s+/g, " ").trim();
 }
+
 
 function do_moderate() {
     var summary = $("#modtools");
