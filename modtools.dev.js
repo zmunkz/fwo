@@ -10,30 +10,21 @@ document.getElementsByTagName('head')[0].appendChild(jqscript);
 var content_sel = ".node.node-type-book .content";
 
 function extractNormalizedText(el) {
-    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null, false);
-    let chunks = [];
-    let lastParent = null;
+    // Clone the content so we don't touch the original DOM
+    const clone = el.cloneNode(true);
 
-    while (walker.nextNode()) {
-        const node = walker.currentNode;
-        const text = node.nodeValue;
+    // Remove all tags, keep only text
+    const text = clone.textContent || clone.innerText || "";
 
-        // Skip empty or whitespace-only
-        if (!text || !text.trim()) continue;
+    // Normalize whitespace
+    const cleaned = text.replace(/\s+/g, " ").trim();
 
-        // If the parent changed (e.g. different tag), break into a new chunk with space
-        if (lastParent && lastParent !== node.parentNode) {
-            chunks.push(" ");
-        }
+    // Show in debug box
+    $("#debugTextDump").text(cleaned).show();
 
-        chunks.push(text);
-        lastParent = node.parentNode;
-    }
-
-    const text = chunks.join("").replace(/\s+/g, " ").trim();
-    $("#debugTextDump").text(text).show();
-    return text;
+    return cleaned;
 }
+
 
 
 
