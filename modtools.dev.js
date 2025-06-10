@@ -1,4 +1,4 @@
-// INTENDED FOR fantasy-writers.org AS OF 2016-10-08 rev 2025.20
+// INTENDED FOR fantasy-writers.org AS OF 2016-10-08 rev 2025.21
 // jQuery is old, we load a known version
 window.jQuery = window.$ = undefined;
 
@@ -37,10 +37,10 @@ function cleanContent() {
     clone.find('*').not('p, div').each(function () {
         $(this).replaceWith($(this).text());
     });
-    clone.find('div').each(function () {
-        const $p = $('<p></p>').html($(this).text());
-        $(this).replaceWith($p);
-    });
+    //clone.find('div').each(function () {
+    //    const $p = $('<p></p>').html($(this).text());
+    //    $(this).replaceWith($p);
+    //});
 
     let html = clone.html();
 
@@ -64,7 +64,7 @@ function do_moderate() {
 
     const words = normalizedText.split(/\s+/).filter(w => w.trim() !== "").length;
     const word_count = new Intl.NumberFormat('en-US').format(words);
-    summary.append(`<p class='${words > 7000 ? "bad" : ""}'>~${word_count} words.</p>`);
+    summary.append(`<p class='${words > 7000 ? "bad" : ""}'>${word_count} words.</p>`);
 
     const img_count = $("#content-modcleaned img").length;
     $("#content-modcleaned img").addClass("bad");
