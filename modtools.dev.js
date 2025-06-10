@@ -1,5 +1,5 @@
-// INTENDED FOR fantasy-writers.org AS OF 2016-10-08 rev 2025
-// they use an old version
+// INTENDED FOR fantasy-writers.org AS OF 2016-10-08 rev 2025.16
+// rewritten 2025-06-09 with DOM clone and content flattening
 window.jQuery = window.$ = undefined;
 
 var jqscript = document.createElement('script');
@@ -9,96 +9,89 @@ document.getElementsByTagName('head')[0].appendChild(jqscript);
 
 var content_sel = ".node.node-type-book .content";
 
-function extractNormalizedText(el) {
-    // Clone the content so we don't touch the original DOM
-    const clone = el.cloneNode(true);
+function getCleanContentClone() {
+    const original = document.querySelector(content_sel);
+    const clone = original.cloneNode(true);
 
-    // Remove all tags, keep only text
-    const text = clone.textContent || clone.innerText || "";
+    // Remove unwanted elements from clone only
+    ["fivestar-static-form-item", "book-navigation", "notification-ui-options-form-0"].forEach(cls => {
+        $(clone).find(`.${cls}, #${cls}`).remove();
+    });
 
-    // Normalize whitespace
-    const cleaned = text.replace(/\s+/g, " ").trim();
+    // Flatten all elements except p and div
+    $(clone).find("*").each(function () {
+        if (!["DIV", "P"].includes(this.tagName)) {
+            $(this).replaceWith($(this).text());
+        }
+    });
 
-    // Show in debug box
-    //$("#debugTextDump").text(cleaned).show();
+    return clone;
+}
 
-    return cleaned;
+function scanAndHighlightText(clone, patternList, className, tooltip) {
+    let fullText = clone.textContent || clone.innerText || "";
+    fullText = fullText.replace(/\s+/g, " ").trim();
+
+    let matchCount = 0;
+    const reList = patternList.map(v => new RegExp("(^|[^\\w])(" + v + ")", "gi"));
+
+    reList.forEach(re => {
+        const matches = [...fullText.matchAll(re)];
+        matchCount += matches.length;
+        $(clone).html(function (_, html) {
+            return html.replace(re, `$1<span class="bad ${className}" title="${tooltip}">$2</span>`);
+        });
+    });
+
+    return { matchCount, cleanedText: fullText, updatedHTML: clone.innerHTML };
 }
 
 function do_moderate() {
     var summary = $("#modtools");
     summary.html("<h3 style='margin:0'>Mod Tools Analysis:</h3>");
-    var contentEl = $(content_sel)[0];
-    //$("#modtools").append(`<pre id="debugTextDump" style="display:none; white-space:pre-wrap; background:#eef; border:1px dashed #99f; padding:0.5em; margin-top:1em;"></pre>`);
-    var normalizedText = extractNormalizedText(contentEl);
 
-    // check length
-    var spoiled_words =
-        ($(".fivestar-static-form-item").text().length > 1 ?
-            $(".fivestar-static-form-item").text().split(' ').length : 0) +
-        ($(".book-navigation").text().length > 1 ?
-            $(".book-navigation").text().split(' ').length : 0) +
-        ($(content_sel + " form").text().length > 1 ?
-            $(content_sel + " form").text().split(' ').length : 0);
-    var words = normalizedText.split(/\s+/).filter(w => w.trim() !== "").length - spoiled_words;
-    var word_count = new Intl.NumberFormat('en-US').format(words);
-    $(summary).append("<p class='" + (words > 7000 ? "bad" : "") + "'>" + word_count + " words.</p>");
+    const contentEl = document.querySelector(content_sel);
+    const clone = getCleanContentClone();
 
-    // check for images
-    var img_count = $(content_sel + " img").length;
+    const curse_list = ["shit[\\w]*", "fuck[\\w]*", "motherfuck[\\w]*", "cunt", "slut", "dick[\\w]*", "nigger", "piss", "cock[\\w]*", "spic", "prick", "bastard", "bitch[\\w]*", "ass(?:hole|clown|face|es)?", "twat", "vagina"];
+    const adult_content = ["(?:gang)?rape[d|s]?", "gor[e|y]", "naked", "nude", "cum", "jizz", "torture", "stripped", "penis", "breast[s]?", "tit[s]?", "orgasm", "ejaculate[d|s]?", "orgy"];
+
+    const curseScan = scanAndHighlightText(clone, curse_list, "curse_word", "Word is potentially vulgar");
+    const adultScan = scanAndHighlightText(clone, adult_content, "adult_theme", "Word might suggest adult themes");
+
+    const cleanedText = curseScan.cleanedText;
+    const visibleContent = clone.innerHTML;
+    $(content_sel).html(visibleContent);
+
+    // Word count
+    const spoiled_words =
+        ($(".fivestar-static-form-item").text().split(/\s+/).length || 0) +
+        ($(".book-navigation").text().split(/\s+/).length || 0) +
+        ($(content_sel + " form").text().split(/\s+/).length || 0);
+
+    const words = cleanedText.split(/\s+/).filter(w => w.trim()).length - spoiled_words;
+    const word_count = new Intl.NumberFormat('en-US').format(words);
+    $(summary).append(`<p class='${words > 7000 ? "bad" : ""}'>${word_count} words.</p>`);
+
+    // Image count
+    const img_count = $(content_sel + " img").length;
     $(content_sel + " img").addClass("bad");
-    $(summary).append("<p class='" + (img_count > 0 ? "bad" : "") + "'>" + img_count + " images.</p>");
+    $(summary).append(`<p class='${img_count > 0 ? "bad" : ""}'>${img_count} images.</p>`);
 
-    // check for links
-    var spoiled_url = $(".fivestar-static-form-item a").length +
+    // Link count
+    const spoiled_url = $(".fivestar-static-form-item a").length +
         $(".book-navigation a").length +
         $(content_sel + " form a").length;
-    var url_count = $(content_sel + " a").length - spoiled_url;
+    const url_count = $(content_sel + " a").length - spoiled_url;
     $(content_sel + " a").addClass("bad url");
     $(".fivestar-static-form-item a, .book-navigation a, " + content_sel + " form a").removeClass("bad");
-    $(summary).append("<p class='" + (url_count > 0 ? "bad url" : "") + "'>" + url_count + " links.</p>");
+    $(summary).append(`<p class='${url_count > 0 ? "bad url" : ""}'>${url_count} links.</p>`);
 
-    // check for possible vulgarity
-    var curse_list = ["shit[\\w]*", "fuck[\\w]*", "motherfuck[\\w]*", "cunt", "slut", "dick[\\w]*", "nigger", "piss", "cock[\\w]*", "spic", "prick", "bastard", "bitch[\\w]*", "ass(?:hole|clown|face|es)?", "twat", "vagina"];
-    let curseMatches = 0;
-    let curseRegexes = curse_list.map(v => new RegExp("(^|[^\\w])(" + v + ")", "gi"));
+    // Curse words
+    $(summary).append(`<p class='${curseScan.matchCount > 0 ? "bad curse_word" : ""}'>${curseScan.matchCount} bad words.</p>`);
 
-    curseRegexes.forEach(re => {
-        const matches = [...normalizedText.matchAll(re)];
-        curseMatches += matches.length;
-    });
-
-    curse_list.forEach(pattern => {
-        const re = new RegExp("(^|[^\\w])(" + pattern + ")(?=[^\\w]|$)", "gi");
-        $(content_sel).html(function (_, html) {
-            return html.replace(re, "$1<span class='bad curse_word' title='Word is potentially vulgar'>$2</span>");
-
-        });
-    });
-    var curses = $(".curse_word").length;
-    
-    $(summary).append("<p class='" + (curses > 0 ? "bad curse_word" : "") + "'>" + curses + " bad words.</p>");
-
-    // check for potential adult themes
-    var adult_content = ["(?:gang)?rape[d|s]?", "gor[e|y]", "naked", "nude", "cum", "jizz", "torture", "stripped", "penis", "breast[s]?", "tit[s]?", "orgasm", "ejaculate[d|s]?", "orgy"];
-    let adultMatches = 0;
-    let adultRegexes = adult_content.map(v => new RegExp("(^|[^\\w])(" + v + ")", "gi"));
-
-    adultRegexes.forEach(re => {
-        const matches = [...normalizedText.matchAll(re)];
-        adultMatches += matches.length;
-    });
-    
-    adult_content.forEach(pattern => {
-        const re = new RegExp("(^|[^\\w])(" + pattern + ")(?=[^\\w]|$)", "gi");
-        $(content_sel).html(function (_, html) {
-            return html.replace(re, "$1<span class='bad adult_theme' title='Word might suggest adult themes'>$2</span>");
-
-        });
-    });
-    var adult = $(".adult_theme").length;
-    
-    $(summary).append("<p class='" + (adult > 0 ? "bad adult_theme" : "") + "'>" + adult + " potential adult themes.</p>");
+    // Adult content
+    $(summary).append(`<p class='${adultScan.matchCount > 0 ? "bad adult_theme" : ""}'>${adultScan.matchCount} potential adult themes.</p>`);
 
     // LLM Button
     let llmButtonHtml = "";
@@ -118,6 +111,8 @@ function do_moderate() {
   <div id="llmResult" style="margin-top:1em;"></div>
 `);
 
+    // Save for LLM use
+    window._fwo_cleanedText = cleanedText;
 }
 
 function goToBad() {
@@ -128,13 +123,52 @@ function goToBad() {
 }
 
 function do_highlight() {
-    if ($(content_sel).hasClass("highlight_problems")) $(content_sel).removeClass("highlight_problems");
-    else $(content_sel).addClass("highlight_problems");
+    if ($(content_sel).hasClass("highlight_problems")) {
+        $(content_sel).removeClass("highlight_problems");
+    } else {
+        $(content_sel).addClass("highlight_problems");
+    }
 }
 
-var mtcss = '.highlight_problems.content > *{color:#aaa;} .highlight_problems a.bad,.highlight_problems .bad, #modtools .bad{color:red;background-color:#fcc;font-weight:bold;}.highlight_problems .bad.adult_theme,#modtools .bad.adult_theme{color:darkred;background-collor:#daa;}.highlight_problems.content .bad.adult_theme{border-color:darkred;}.highlight_problems img.bad{border:1px solid red; background:#fcc; padding:10px;}.highlight_problems.content .bad.url{border-color:#0b0;}.highlight_problems .bad.url,#modtools .bad.url{color:darkgreen;background-color:#afa;}#modtools{border:1px solid #aaf; background-color:#eaeaff; margin: 0 0 1em; padding: 1em 0 1em 1em;} #modtools p {float:left; margin-right:5px;}.highlight_problems.content .bad {border:1px solid red;padding:5px;}#llmAuditBtn{margin-left: 1em;}',
-    mthead = document.getElementsByTagName('head')[0],
-    mtstyle = document.createElement('style');
+var mtcss = `
+.highlight_problems.content > * { color: #aaa; }
+.highlight_problems .bad, #modtools .bad {
+  color: red;
+  background-color: #fcc;
+  font-weight: bold;
+  border-radius: 2px;
+  padding: 1px 3px;
+}
+.highlight_problems .bad.adult_theme, #modtools .bad.adult_theme {
+  color: darkred;
+  background-color: #faa;
+}
+.highlight_problems img.bad {
+  border: 1px solid red;
+  background: #fcc;
+  padding: 10px;
+}
+.highlight_problems .bad.url, #modtools .bad.url {
+  color: darkgreen;
+  background-color: #afa;
+}
+#modtools {
+  border: 1px solid #aaf;
+  background-color: #eaeaff;
+  margin: 0 0 1em;
+  padding: 1em 0 1em 1em;
+}
+#modtools p {
+  float: left;
+  margin-right: 5px;
+}
+#llmAuditBtn {
+  margin-left: 1em;
+}
+`;
+
+var mthead = document.getElementsByTagName('head')[0];
+var mtstyle = document.createElement('style');
 mtstyle.type = 'text/css';
 if (mtstyle.styleSheet) {
     mtstyle.styleSheet.cssText = mtcss;
@@ -150,18 +184,21 @@ function do_init() {
 
 function wait_for_init(i) {
     if (i == 0) {
-        console.log("Opps, I need jQuery and it never loaded.");
+        console.log("Oops, I need jQuery and it never loaded.");
     }
 
-    if (typeof jQuery == 'undefined') setTimeout("wait_for_init(" + --i + ")", 100);
-    else do_init();
+    if (typeof jQuery == 'undefined') {
+        setTimeout("wait_for_init(" + --i + ")", 100);
+    } else {
+        do_init();
+    }
 }
 
 async function do_llm_audit() {
     $("#llmAuditBtn").remove();
     $("#llmResult").html("<div><em>Waking up the bots...</em></div>");
 
-    const contentText = extractNormalizedText($(content_sel)[0]).slice(0, 8000);
+    const contentText = (window._fwo_cleanedText || "").slice(0, 8000);
 
     try {
         const res = await fetch("https://zmunk.com/fwo_modcheck.php", {
