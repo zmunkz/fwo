@@ -25,9 +25,6 @@ function extractNormalizedText(el) {
     return cleaned;
 }
 
-
-
-
 function do_moderate() {
     var summary = $("#modtools");
     summary.html("<h3 style='margin:0'>Mod Tools Analysis:</h3>");
@@ -81,22 +78,22 @@ function do_moderate() {
     $(summary).append("<p class='" + (curses > 0 ? "bad curse_word" : "") + "'>" + curses + " bad words.</p>");
 
     // check for potential adult themes
-    var adult_content = ["(?:gang)?rape[d|s]?", "gor[e|y]", "naked", "nude", "stripped", "penis", "breast[s]?", "tit[s]?", "orgasm", "ejaculate[d|s]?", "orgy"];
+    var adult_content = ["(?:gang)?rape[d|s]?", "gor[e|y]", "naked", "nude", "cum", "jizz", "torture", "stripped", "penis", "breast[s]?", "tit[s]?", "orgasm", "ejaculate[d|s]?", "orgy"];
     let adultMatches = 0;
     let adultRegexes = adult_content.map(v => new RegExp("\\b(" + v + ")\\b", "gi"));
 
     adultRegexes.forEach(re => {
         if (normalizedText.match(re)) adultMatches++;
     });
-
+    
     adult_content.forEach(pattern => {
         const re = new RegExp("\\b(" + pattern + ")\\b", "gi");
         $(content_sel).html(function (_, html) {
             return html.replace(re, "<span class='bad adult_theme' title='Word might suggest adult themes'>$1</span>");
         });
     });
-
     var adult = $(".adult_theme").length;
+    
     $(summary).append("<p class='" + (adult > 0 ? "bad adult_theme" : "") + "'>" + adult + " potential adult themes.</p>");
 
     // LLM Button
