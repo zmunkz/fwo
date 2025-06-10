@@ -37,10 +37,6 @@ function cleanContent() {
     clone.find('*').not('p, div').each(function () {
         $(this).replaceWith($(this).text());
     });
-    //clone.find('div').each(function () {
-    //    const $p = $('<p></p>').html($(this).text());
-    //    $(this).replaceWith($p);
-    //});
 
     let html = clone.html();
 
@@ -150,8 +146,6 @@ async function do_llm_audit() {
         .split(/\s+/)
         .slice(0, 8000)
         .join(" ");
-
-    console.log("Checking: " + contentText );
     
     try {
         const res = await fetch("https://zmunk.com/fwo_modcheck.php", {
