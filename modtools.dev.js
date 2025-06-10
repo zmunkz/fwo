@@ -108,7 +108,7 @@ function do_highlight() {
     $("#content-modcleaned").toggleClass("highlight_problems");
 }
 
-var mtcss = `.highlight_problems.content > *{color:#aaa;} 
+var mtcss = `.highlight_problems.content-modcleaned > *{color:#aaa;} 
 .highlight_problems .bad, #modtools .bad {color:red;background-color:#fcc;font-weight:bold;}
 .highlight_problems .bad.adult_theme,#modtools .bad.adult_theme {color:darkred;background-color:#daa;}
 .highlight_problems .bad.url, #modtools .bad.url {color:darkgreen;background-color:#afa;}
