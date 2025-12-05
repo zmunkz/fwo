@@ -45,8 +45,8 @@
         /* Story Font */
         .story-text {
             font-family: 'Merriweather', serif;
-            line-height: 1.8;
-            transition: font-size 0.2s ease;
+            line-height: 1.6; /* Default relative line-height */
+            transition: font-size 0.2s ease, line-height 0.2s ease;
         }
 
         /* --- Highlight Logic --- */
@@ -150,6 +150,11 @@
             border-color: #6366f1;
             box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.1), 0 2px 4px -1px rgba(99, 102, 241, 0.06);
         }
+        
+        /* Updated: Comment List Bottom Spacing */
+        #comments-list {
+            padding-bottom: 50vh; /* Ensures the last card is never stuck at the very bottom */
+        }
 
         /* Drag and Drop Styles */
         .draggable-source {
@@ -179,6 +184,11 @@
             background-color: #1f2937;
             border-color: #4b5563;
             color: #d1d5db;
+        }
+        
+        /* Updated: FWO Spacing Match */
+        #final-preview p {
+            margin-bottom: 0.5em;
         }
     </style>
 </head>
@@ -343,6 +353,10 @@
             
             updateHeaderButtons();
             startTimer();
+            
+            // Initialize line height match
+            els.renderArea.style.fontSize = currentZoom + 'px';
+            els.renderArea.style.lineHeight = (currentZoom * 1.6) + 'px';
 
             document.addEventListener('mouseup', handleSelection);
             
@@ -437,7 +451,8 @@
                     
                     selection.removeAllRanges();
                     
-                    focusComment(id);
+                    // Slightly delayed focus so we can scroll
+                    setTimeout(() => focusComment(id), 50);
                     refreshNumbering(); 
                 }
             } catch (e) { console.error(e); }
@@ -527,7 +542,8 @@
             const id = 'note-' + Date.now();
             comments[id] = { text: null, comment: '', type: 'note', timestamp: Date.now() };
             addCommentCard(id);
-            focusComment(id);
+            // Delay focus slightly to ensure DOM is ready and scroll happens
+            setTimeout(() => focusComment(id), 50);
         }
 
         // --- Comment UI ---
@@ -621,7 +637,9 @@
             // CHANGED: Append to bottom (Chronological)
             els.commentsList.appendChild(card);
             
+            // Updated: Scroll new card into view (centered)
             setTimeout(() => {
+                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 const ed = document.getElementById(`editor-${id}`);
                 if(ed) ed.focus();
             }, 50);
@@ -834,7 +852,10 @@
             currentZoom += dir;
             if(currentZoom < 12) currentZoom = 12;
             if(currentZoom > 32) currentZoom = 32;
+            
+            // Updated: Set both Font Size and Line Height together
             els.renderArea.style.fontSize = currentZoom + 'px';
+            els.renderArea.style.lineHeight = (currentZoom * 1.6) + 'px';
         }
 
         function startTimer() {
