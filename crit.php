@@ -293,6 +293,8 @@
             </div>
             <div class="p-3 bg-blue-50 dark:bg-blue-900/30 border-b border-blue-100 dark:border-blue-800 text-xs text-blue-800 dark:text-blue-200 flex justify-between items-center">
                 <span>Make any last edits directly in the box below.</span>
+                <!-- Added Metrics Span -->
+                <span id="compile-metrics" class="font-semibold opacity-80"></span>
             </div>
             <div class="flex-1 overflow-y-auto p-8 bg-white dark:bg-gray-800">
                 <div id="final-preview" contenteditable="true" class="max-w-3xl mx-auto font-serif text-gray-800 dark:text-gray-200 outline-none min-h-[50vh]"></div>
@@ -334,7 +336,8 @@
             timerDisplay: document.getElementById('timer-display'),
             timerBtn: document.getElementById('timer-btn'),
             finalPreview: document.getElementById('final-preview'),
-            exportModal: document.getElementById('export-modal')
+            exportModal: document.getElementById('export-modal'),
+            compileMetrics: document.getElementById('compile-metrics') // Added to element list
         };
 
         // --- Core Application Logic ---
@@ -480,7 +483,8 @@
             const iterator = document.createNodeIterator(
                 range.commonAncestorContainer,
                 NodeFilter.SHOW_TEXT,
-                { acceptNode: (node) => range.intersectsNode(node) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT }
+                { acceptNode: (node) => range.intersectsNode(node) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT 
+                }
             );
 
             let node;
@@ -810,6 +814,19 @@
             });
 
             if(!html) return showToast("No comments to compile.", "error");
+
+            // --- Updated Logic: Grab existing Metrics ---
+            // 1. Get Word count from the sidebar status
+            const wordCount = parseInt(els.wordCountStatus.textContent) || 0;
+
+            // 2. Get Time
+            const timeSpent = els.timerDisplay.textContent;
+
+            // 3. Update Header
+            if (els.compileMetrics) {
+                els.compileMetrics.textContent = `Crit length: ${wordCount} words, Time spent: ${timeSpent}`;
+            }
+            // ----------------------------------------
 
             els.finalPreview.innerHTML = html;
             els.exportModal.classList.remove('hidden');
